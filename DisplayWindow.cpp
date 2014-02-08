@@ -88,6 +88,12 @@ void DisplayWindow::play()
 		auto currentFrame = fetcher.getFrame();
 
 		try {
+			if (gameOver(*currentFrame)) {
+				printf("Game over!");
+				fflush(stdout);
+				break;
+			}
+
 			Point beakLocation = findBeakLocation(*currentFrame);
 			Rectangle bird = findBird(*currentFrame, beakLocation);
 			bird.expandBy(5); // Give ourselves some padding

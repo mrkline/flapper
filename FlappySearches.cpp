@@ -14,6 +14,7 @@ namespace {
 const array<uint8_t, 3> flappySkyRGB = { 112, 198, 206 };
 const array<uint8_t, 3> flappyGroundRGB = { 221, 218, 147 };
 const array<uint8_t, 3> beakRGB = { 244, 106, 78 };
+const array<uint8_t, 3> gameOverRGB = { 255, 255, 255 };
 
 const vector<array<uint8_t, 3>> birdRGBs = { beakRGB, {252, 239, 40}, {249, 187, 4} };
 const vector<array<uint8_t, 3>> pipeRGBs = { {205, 252, 113}, {139, 230, 68}, {96, 182, 34}, {66, 121, 25} };
@@ -179,4 +180,22 @@ vector<Rectangle> findPipes(const VideoFrame& frame)
 	mergeAdjacentRects(pipes);
 
 	return pipes;
+}
+
+bool gameOver(const VideoFrame& frame)
+{
+	// The screen flashes white when the game ends
+
+	bool over = true;
+	frame.foreachPixel([&](const uint8_t* pix, int x, int y) {
+		(void)x; // Shut up, compiler
+		(void)y; // Shut up, compiler
+		if (!pixelIsApprox(pix, gameOverRGB)) {
+			over = false;
+			return false;
+		}
+		else return true;
+	});
+
+	return over;
 }

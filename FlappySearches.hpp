@@ -21,4 +21,6 @@ Rectangle findBird(const VideoFrame& frame, const Point beak);
 
 std::vector<Rectangle> findPipes(const VideoFrame& frame);
 
+bool gameOver(const VideoFrame& frame);
+
 #endif
