@@ -54,12 +54,6 @@ void DisplayWindow::play()
 	auto hsvFullscreen(*fullscreenFrame);
 	hsvFullscreen.rgb2hsv();
 
-	QImage hsvImage(hsvFullscreen.getPixels(),
-	                hsvFullscreen.getWidth(),
-	                hsvFullscreen.getHeight(),
-	                QImage::Format_RGB888);
-	hsvImage.save("hsv_test.png");
-
 	Rectangle gameRect;
 	try {
 		gameRect = findGameWindow(hsvFullscreen);
@@ -67,6 +61,7 @@ void DisplayWindow::play()
 	catch(const Exceptions::Exception& e) {
 		fprintf(stderr, "Could not find game window with error:\n");
 		fprintf(stderr, "%s\nin function %s\n", e.message.c_str(), e.callingFunction.c_str());
+		fflush(stderr);
 		canvas->setFrame(fullscreenFrame);
 		this_thread::sleep_for(sc::seconds(5));
 		canvas->setFrame(unique_ptr<QImage>(new QImage("ErrorImage.jpg")));
@@ -90,17 +85,26 @@ void DisplayWindow::play()
 	// While we're not told to exit and there are more frames to display
 	while (threadRunning) {
 		auto currentFrame = fetcher.getFrame();
-		unique_ptr<QImage> loopTest(new QImage(currentFrame->getPixels(),
-		                currentFrame->getWidth(),
-		                currentFrame->getHeight(),
-		                QImage::Format_RGB888));
-		canvas->setFrame(std::move(loopTest));
-		// canvas->setFrame(fetcher.getFrame());
-		// fetcher.getFPSTracker().printPeriodically("Fetcher FPS: ");
-		// fflush(stdout);
-		// canvas->setFrame(nextMask);
-		// Post a new order to repaint. Done this way because another thread cannot directly call repaint()
-		//QCoreApplication::postEvent(canvas, new QPaintEvent(canvas->rect()));
+
+		auto hsvFrame = make_shared<VideoFrame>(*currentFrame);
+		hsvFrame->rgb2hsv();
+
+		try {
+			Point beakLocation = findBeakLocation(*hsvFrame);
+			Rectangle birdRect(beakLocation);
+
+			uint8_t overlayColor[3] = { 100, 255, 100 };
+			currentFrame->crosshairsAt(beakLocation, overlayColor, 20);
+			
+		}
+		catch(const Exceptions::Exception& e) {
+			fprintf(stderr, "Analysis error:\n");
+			fprintf(stderr, "%s\nin function %s\n", e.message.c_str(), e.callingFunction.c_str());
+			fflush(stderr);
+		}
+
+		canvas->setFrame(currentFrame);
+		fetcher.getFPSTracker().printPeriodically("Fetcher FPS: ");
 	}
 }
 

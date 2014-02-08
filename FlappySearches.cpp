@@ -10,8 +10,9 @@ using namespace std;
 
 namespace {
 
-	uint8_t flappySkyHSV[3] = { 131, 116, 206 };
-	uint8_t flappyGroundHSV[3] = { 39, 77, 220 };
+uint8_t flappySkyHSV[3] = { 131, 116, 206 };
+uint8_t flappyGroundHSV[3] = { 39, 77, 220 };
+uint8_t beakHSV[3] = { 6, 183, 255 };
 
 inline bool pixelIsApprox(const uint8_t* pix, uint8_t to[3], int tolerance = 5)
 {
@@ -47,6 +48,9 @@ void mergeAdjacentRects(vector<Rectangle>& rectList)
 	} while (mergedOne);
 }
 
+auto biggestRect = [](const Rectangle& l, const Rectangle& r) { return l.getArea() > r.getArea(); };
+
+
 } // end anonymous namespace
 
 Rectangle findGameWindow(const VideoFrame& frame)
@@ -76,19 +80,17 @@ Rectangle findGameWindow(const VideoFrame& frame)
 		return true;
 	});
 
-	if (skyRects.size() == 0)
+	if (skyRects.empty())
 		throw Exceptions::Exception("Could not find a single sky rectangle", __FUNCTION__);
 
-	if (groundRects.size() == 0)
+	if (groundRects.empty())
 		throw Exceptions::Exception("Could not find a single ground rectangle", __FUNCTION__);
 
 	mergeAdjacentRects(skyRects);
 	mergeAdjacentRects(groundRects);
 
-	auto biggest = [](const Rectangle& l, const Rectangle& r) { return l.getArea() > r.getArea(); };
-
-	sort(begin(skyRects), end(skyRects), biggest);
-	sort(begin(groundRects), end(groundRects), biggest);
+	sort(begin(skyRects), end(skyRects), biggestRect);
+	sort(begin(groundRects), end(groundRects), biggestRect);
 
 	const Rectangle& bigSky = skyRects[0];
 	const Rectangle& bigGround = groundRects[0];
@@ -97,4 +99,33 @@ Rectangle findGameWindow(const VideoFrame& frame)
 		throw Exceptions::Exception("The sky and ground rectangles do not line up", __FUNCTION__);
 
 	return Rectangle(bigSky.left, bigSky.top, bigGround.right, bigGround.bottom);
+}
+
+Point findBeakLocation(const VideoFrame& frame)
+{
+	vector<Rectangle> beakRects;
+
+	frame.foreachPixel([&](const uint8_t* pix, int x, int y) {
+
+		auto adjacent = [=](const Rectangle& r) { return r.adjacentTo(x, y); };
+
+		if (pixelIsApprox(pix, beakHSV)) {
+			auto inside = find_if(begin(beakRects), end(beakRects), adjacent);
+			if (inside != end(beakRects))
+				inside->expandTo(x, y);
+			else
+				beakRects.emplace_back(x, y, x, y);
+		}
+
+		return true;
+	});
+
+	if (beakRects.empty())
+		throw Exceptions::Exception("Could not find a single beak rectangle", __FUNCTION__);
+
+	mergeAdjacentRects(beakRects);
+
+	sort(begin(beakRects), end(beakRects), biggestRect);
+
+	return beakRects[0].getCenter();
 }

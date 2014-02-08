@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "Exceptions.hpp"
+#include "Rectangle.hpp"
 
 /// A frame of video with a width, height, depth, and data
 class VideoFrame {
@@ -23,6 +24,7 @@ public:
 		  width(w),
 		  height(h),
 		  depth(d),
+		  pitch(w * d),
 		  totalSize(w * h * d),
 		  ownsPixels(makeCopy)
 	{
@@ -44,6 +46,7 @@ public:
 		  width(w),
 		  height(h),
 		  depth(d),
+		  pitch(w * d),
 		  totalSize(w * h * d),
 		  ownsPixels(true)
 	{
@@ -58,6 +61,7 @@ public:
 		  width(other.width),
 		  height(other.height),
 		  depth(other.depth),
+		  pitch(other.pitch),
 		  totalSize(other.totalSize),
 		  ownsPixels(true)
 	{
@@ -73,7 +77,11 @@ public:
 		memset(pixels, memsetTo, totalSize);
 	}
 
+	// All of these are project-specific. Move them somewhere else, someday.
+
 	void rgb2hsv();
+
+	void crosshairsAt(Point p, uint8_t color[3], int radius);
 
 	// Currently too lazy/sleep-deprived to write a proper iterator class.
 	// Also wondering how I would do so if it needs to be default constructible and we need the depth.
@@ -115,6 +123,8 @@ public:
 
 	size_t getDepth() const { return depth; }
 
+	size_t getPitch() const { return pitch; }
+
 	/// Returns the image's size, in bytes
 	size_t getTotalSize() const {return totalSize; }
 
@@ -137,6 +147,7 @@ private:
 	size_t width;
 	size_t height;
 	size_t depth;
+	size_t pitch;
 	size_t totalSize;
 	bool ownsPixels;
 

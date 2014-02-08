@@ -13,4 +13,6 @@ class VideoFrame;
 
 Rectangle findGameWindow(const VideoFrame& frame);
 
+Point findBeakLocation(const VideoFrame& frame);
+
 #endif
