@@ -5,6 +5,7 @@
 #include <QPushButton>
 
 #include <mutex>
+#include <cstdio> // TEMP
 
 #include "QGLCanvas.hpp"
 #include "X11ScreenIO.hpp"
@@ -25,6 +26,8 @@ DisplayWindow::DisplayWindow(QWidget *parent) :
 	layout->addWidget(canvas);
 	layout->addWidget(btnStart);
 	ui->centralWidget->setLayout(layout);
+
+	connect(btnStart, &QPushButton::clicked, this, &DisplayWindow::startClicked);
 
 	canvas->setFrame(new QImage("placeholder.png"));
 
@@ -50,4 +53,14 @@ void DisplayWindow::videoUpdate()
 		// Post a new order to repaint. Done this way because another thread cannot directly call repaint()
 		//QCoreApplication::postEvent(canvas, new QPaintEvent(canvas->rect()));
 	}
+}
+
+void DisplayWindow::startClicked()
+{
+	auto frame = screenIO->getFrame();
+	QImage img(frame->getPixels(),
+	           frame->getWidth(),
+	           frame->getHeight(),
+	           QImage::Format_RGB888);
+	img.save("out.png");
 }

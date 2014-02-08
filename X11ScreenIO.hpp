@@ -13,6 +13,8 @@ public:
 
 	X11ScreenIO();
 
+	~X11ScreenIO();
+
 	std::unique_ptr<VideoFrame> getFrame() override;
 
 	/// Focuses in on a certain part of the screen. Future calls to getFrame will just get this portion.

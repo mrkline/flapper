@@ -36,6 +36,10 @@ private:
 	std::unique_ptr<ScreenIO> screenIO;
 	
 	void videoUpdate(); ///< The procedure that runs inside the video update thread
+
+private slots:
+
+	void startClicked();
 };
 
 #endif // DISPLAYWINDOW_H
