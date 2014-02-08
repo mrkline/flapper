@@ -51,12 +51,10 @@ void DisplayWindow::play()
 	// First let's find the window. It's going to have a bunch of blue up top and some tan down below
 	screenIO->resetFocus();
 	auto fullscreenFrame = screenIO->getFrame();
-	auto hsvFullscreen(*fullscreenFrame);
-	hsvFullscreen.rgb2hsv();
 
 	Rectangle gameRect;
 	try {
-		gameRect = findGameWindow(hsvFullscreen);
+		gameRect = findGameWindow(*fullscreenFrame);
 	}
 	catch(const Exceptions::Exception& e) {
 		fprintf(stderr, "Could not find game window with error:\n");
@@ -86,11 +84,8 @@ void DisplayWindow::play()
 	while (threadRunning) {
 		auto currentFrame = fetcher.getFrame();
 
-		auto hsvFrame = make_shared<VideoFrame>(*currentFrame);
-		hsvFrame->rgb2hsv();
-
 		try {
-			Point beakLocation = findBeakLocation(*hsvFrame);
+			Point beakLocation = findBeakLocation(*currentFrame);
 			Rectangle birdRect(beakLocation);
 
 			uint8_t overlayColor[3] = { 100, 255, 100 };
@@ -98,9 +93,11 @@ void DisplayWindow::play()
 		
 		}
 		catch(const Exceptions::Exception& e) {
+			/*
 			fprintf(stderr, "Analysis error:\n");
 			fprintf(stderr, "%s\nin function %s\n", e.message.c_str(), e.callingFunction.c_str());
 			fflush(stderr);
+			*/
 		}
 
 		canvas->setFrame(currentFrame);

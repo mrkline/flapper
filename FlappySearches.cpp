@@ -10,9 +10,11 @@ using namespace std;
 
 namespace {
 
-uint8_t flappySkyHSV[3] = { 131, 116, 206 };
-uint8_t flappyGroundHSV[3] = { 39, 77, 220 };
-uint8_t beakHSV[3] = { 6, 183, 255 };
+uint8_t flappySkyRGB[3] = { 112, 198, 206 };
+uint8_t flappyGroundRGB[3] = { 221, 218, 147 };
+uint8_t beakRGB[3] = { 244, 106, 78 };
+
+// std::vector<uint8_t[3]> = { beakRGB,
 
 inline bool pixelIsApprox(const uint8_t* pix, uint8_t to[3], int tolerance = 5)
 {
@@ -62,14 +64,14 @@ Rectangle findGameWindow(const VideoFrame& frame)
 
 		auto adjacent = [=](const Rectangle& r) { return r.adjacentTo(x, y); };
 
-		if (pixelIsApprox(pix, flappySkyHSV)) {
+		if (pixelIsApprox(pix, flappySkyRGB)) {
 			auto inside = find_if(begin(skyRects), end(skyRects), adjacent);
 			if (inside != end(skyRects))
 				inside->expandTo(x, y);
 			else
 				skyRects.emplace_back(x, y, x, y);
 		}
-		else if (pixelIsApprox(pix, flappyGroundHSV)) {
+		else if (pixelIsApprox(pix, flappyGroundRGB)) {
 			auto inside = find_if(begin(groundRects), end(groundRects), adjacent);
 			if (inside != end(groundRects))
 				inside->expandTo(x, y);
@@ -109,7 +111,7 @@ Point findBeakLocation(const VideoFrame& frame)
 
 		auto adjacent = [=](const Rectangle& r) { return r.adjacentTo(x, y); };
 
-		if (pixelIsApprox(pix, beakHSV)) {
+		if (pixelIsApprox(pix, beakRGB, 20)) {
 			auto inside = find_if(begin(beakRects), end(beakRects), adjacent);
 			if (inside != end(beakRects))
 				inside->expandTo(x, y);
