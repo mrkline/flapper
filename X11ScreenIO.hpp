@@ -15,10 +15,12 @@ public:
 
 	~X11ScreenIO();
 
-	std::unique_ptr<VideoFrame> getFrame() override;
+	std::shared_ptr<VideoFrame> getFrame() override;
 
 	/// Focuses in on a certain part of the screen. Future calls to getFrame will just get this portion.
-	void focusOn(int left, int top, int right, int bottom) override;
+	void focusOn(const Rectangle& r) override;
+
+	void resetFocus() override;
 
 	// No copy or assign
 	X11ScreenIO(const X11ScreenIO&) = delete;

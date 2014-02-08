@@ -73,6 +73,28 @@ public:
 		memset(pixels, memsetTo, totalSize);
 	}
 
+	void rgb2hsv();
+
+	// Currently too lazy/sleep-deprived to write a proper iterator class.
+	// Also wondering how I would do so if it needs to be default constructible and we need the depth.
+	template <typename T>
+	void foreachPixel(T iteration) const
+	{
+		int x = 0;
+		int y = 0;
+		const uint8_t* const end = pixels + totalSize;
+
+		for (const uint8_t* currentPixel = pixels; currentPixel < end; currentPixel += depth) {
+			if (!iteration(currentPixel, x, y))
+				break;
+
+			if (++x == width) {
+				x = 0;
+				++y;
+			}
+		}
+	}
+
 	uint8_t* getPixels() { return pixels; }
 
 	const uint8_t* getPixels() const { return pixels; }
@@ -87,9 +109,11 @@ public:
 	/// \returns The address of the first byte of the given pixel
 	const uint8_t* getPixel(size_t x, size_t y) const { return &pixels[(y * width + x) * depth]; }
 
-	size_t getWidth() const { return width; };
+	size_t getWidth() const { return width; }
 
-	size_t getHeight() const { return height; };
+	size_t getHeight() const { return height; }
+
+	size_t getDepth() const { return depth; }
 
 	/// Returns the image's size, in bytes
 	size_t getTotalSize() const {return totalSize; }

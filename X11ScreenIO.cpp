@@ -4,6 +4,8 @@
 
 #include "Exceptions.hpp"
 
+using namespace std;
+
 X11ScreenIO::X11ScreenIO()
 {
 	mainDisplay = XOpenDisplay(NULL);
@@ -11,19 +13,7 @@ X11ScreenIO::X11ScreenIO()
 		throw Exceptions::IOException("Could not open the default X11 display", __FUNCTION__);
 
 	rootWindow = DefaultRootWindow(mainDisplay);
-
-	// Throwaway values
-	Window root;
-	unsigned int borderWidth, depth;
-
-	if (!XGetGeometry(mainDisplay, rootWindow, &root,
-	                  &capX, &capY, &capWidth, &capHeight, &borderWidth, &depth)) {
-		throw Exceptions::IOException("Couldn't get geometry of the default X11 display", __FUNCTION__);
-	}
-	if (depth != 24) {
-		throw Exceptions::IOException("This program assumes a 24-bit display."
-		                              " This does not seem to be the case.", __FUNCTION__);
-	}
+	resetFocus();
 }
 
 X11ScreenIO::~X11ScreenIO()
@@ -31,9 +21,9 @@ X11ScreenIO::~X11ScreenIO()
 	XCloseDisplay(mainDisplay);
 }
 
-std::unique_ptr<VideoFrame> X11ScreenIO::getFrame()
+std::shared_ptr<VideoFrame> X11ScreenIO::getFrame()
 {
-	XImage* img = XGetImage(mainDisplay, rootWindow, 0, 0, capWidth, capHeight, AllPlanes, ZPixmap);
+	XImage* img = XGetImage(mainDisplay, rootWindow, capX, capY, capWidth, capHeight, AllPlanes, ZPixmap);
 	if (img->depth != 24) {
 		throw Exceptions::IOException("This program assumes a 24-bit display."
 		                              " This does not seem to be the case.", __FUNCTION__);
@@ -43,10 +33,21 @@ std::unique_ptr<VideoFrame> X11ScreenIO::getFrame()
 		                              "This does not seem to be the case.", __FUNCTION__);
 	}
 
-	std::unique_ptr<VideoFrame> ret(new VideoFrame(img->width, img->height, 3, false));
+	std::shared_ptr<VideoFrame> ret = make_shared<VideoFrame>(img->width, img->height, 3, false);
 
 	auto curr = ret->getPixels();
 	
+	/*
+	for (int y = 0; y < img->height; ++y) {
+		for (int x = 0; x < img->width; ++x) {
+			auto pixelValue = XGetPixel(img, x, y);
+			curr[0] = (uint8_t)((pixelValue & 0xFF0000) >> 16);
+			curr[1] = (uint8_t)((pixelValue & 0x00FF00) >> 8);
+			curr[2] = (uint8_t)((pixelValue & 0x0000FF));
+			curr += 3;
+		}
+	}
+	*/
 	for (int y = 0; y < img->height; ++y) {
 		uint32_t* line_ptr = (uint32_t*) &(img->data)[y * img->bytes_per_line];
 		for (int x = 0; x < img->width; ++x) {
@@ -61,13 +62,29 @@ std::unique_ptr<VideoFrame> X11ScreenIO::getFrame()
 	return ret;
 }
 
-void X11ScreenIO::focusOn(int left, int top, int right, int bottom)
+void X11ScreenIO::focusOn(const Rectangle& r)
 {
-	if (left >= right || top >= bottom || left < 0 || top < 0)
+	if (r.left >= r.right || r.top >= r.bottom || r.left < 0 || r.top < 0)
 		throw Exceptions::ArgumentException("Invalid bounds", __FUNCTION__);
 
-	capX = left;
-	capY = top;
-	capWidth = right - left;
-	capHeight = bottom - top;
+	capX = r.left;
+	capY = r.top;
+	capWidth = r.getWidth();
+	capHeight = r.getHeight();
+}
+
+void X11ScreenIO::resetFocus()
+{
+	// Throwaway values
+	Window root;
+	unsigned int borderWidth, depth;
+
+	if (!XGetGeometry(mainDisplay, rootWindow, &root,
+	                  &capX, &capY, &capWidth, &capHeight, &borderWidth, &depth)) {
+		throw Exceptions::IOException("Couldn't get geometry of the default X11 display", __FUNCTION__);
+	}
+	if (depth != 24) {
+		throw Exceptions::IOException("This program assumes a 24-bit display."
+		                              " This does not seem to be the case.", __FUNCTION__);
+	}
 }

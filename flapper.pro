@@ -21,14 +21,18 @@ QMAKE_CXXFLAGS += -Wall -Wextra
 SOURCES += main.cpp \
 DisplayWindow.cpp \
 QGLCanvas.cpp \
-X11ScreenIO.cpp
+VideoFrame.cpp \
+X11ScreenIO.cpp \
+FlappySearches.cpp
 
 HEADERS  += DisplayWindow.hpp \
 QGLCanvas.hpp \
 VideoFrame.hpp \
 ScreenIO.hpp \
 X11ScreenIO.hpp \
+FlappySearches.hpp \
+Rectangle.hpp \
 Exceptions.hpp \
-MKMath.hpp \
+MKMath.hpp
 
 FORMS    += DisplayWindow.ui
