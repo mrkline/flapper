@@ -1,6 +1,7 @@
 #ifndef __VIDEO_FRAME_HPP__
 #define __VIDEO_FRAME_HPP__
 
+#include <array>
 #include <cstring>
 
 #include "Exceptions.hpp"
@@ -81,7 +82,7 @@ public:
 
 	void rgb2hsv();
 
-	void crosshairsAt(Point p, uint8_t color[3], int radius);
+	void crosshairsAt(Point p, std::array<uint8_t, 3> color, int radius);
 
 	// Currently too lazy/sleep-deprived to write a proper iterator class.
 	// Also wondering how I would do so if it needs to be default constructible and we need the depth.

@@ -50,7 +50,7 @@ void VideoFrame::rgb2hsv()
 	}
 }
 
-void VideoFrame::crosshairsAt(Point p, uint8_t color[3], int radius)
+void VideoFrame::crosshairsAt(Point p, std::array<uint8_t, 3> color, int radius)
 {
 
 	if (depth != 3)

@@ -88,16 +88,13 @@ void DisplayWindow::play()
 			Point beakLocation = findBeakLocation(*currentFrame);
 			Rectangle birdRect(beakLocation);
 
-			uint8_t overlayColor[3] = { 100, 255, 100 };
+			std::array<uint8_t, 3> overlayColor = { 100, 255, 100 };
 			currentFrame->crosshairsAt(beakLocation, overlayColor, 20);
 		
 		}
 		catch(const Exceptions::Exception& e) {
-			/*
-			fprintf(stderr, "Analysis error:\n");
-			fprintf(stderr, "%s\nin function %s\n", e.message.c_str(), e.callingFunction.c_str());
+			fprintf(stderr, "Analysis error: %s\n", e.message.c_str());
 			fflush(stderr);
-			*/
 		}
 
 		canvas->setFrame(currentFrame);

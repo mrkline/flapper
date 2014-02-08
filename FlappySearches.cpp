@@ -1,6 +1,7 @@
 #include "FlappySearches.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <vector>
 
@@ -10,13 +11,13 @@ using namespace std;
 
 namespace {
 
-uint8_t flappySkyRGB[3] = { 112, 198, 206 };
-uint8_t flappyGroundRGB[3] = { 221, 218, 147 };
-uint8_t beakRGB[3] = { 244, 106, 78 };
+array<uint8_t, 3> flappySkyRGB = { 112, 198, 206 };
+array<uint8_t, 3> flappyGroundRGB = { 221, 218, 147 };
+array<uint8_t, 3> beakRGB = { 244, 106, 78 };
 
 // std::vector<uint8_t[3]> = { beakRGB,
 
-inline bool pixelIsApprox(const uint8_t* pix, uint8_t to[3], int tolerance = 5)
+inline bool pixelIsApprox(const uint8_t* pix, array<uint8_t, 3> to, int tolerance = 5)
 {
 	const int r = pix[0];
 	const int g = pix[1];
