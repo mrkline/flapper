@@ -52,7 +52,6 @@ void VideoFrame::rgb2hsv()
 
 void VideoFrame::crosshairsAt(Point p, std::array<uint8_t, 3> color, int radius)
 {
-
 	if (depth != 3)
 		throw Exceptions::ArgumentException("The frame must be 24-bit RGB", __FUNCTION__);
 
@@ -83,5 +82,25 @@ void VideoFrame::crosshairsAt(Point p, std::array<uint8_t, 3> color, int radius)
 		pix[0] = color[0];
 		pix[1] = color[1];
 		pix[2] = color[2];
+	}
+}
+
+void VideoFrame::rectangleAt(Rectangle r, std::array<uint8_t, 3> color)
+{
+	if (depth != 3)
+		throw Exceptions::ArgumentException("The frame must be 24-bit RGB", __FUNCTION__);
+
+	const size_t left = (size_t)std::max(r.left, 0);
+	const size_t top = (size_t)std::max(r.top, 0);
+	const size_t right = (size_t)std::min(r.right, (int)width - 1);
+	const size_t bottom = (size_t)std::min(r.bottom, (int)height - 1);
+
+	for (size_t y = top; y <= bottom; ++y) {
+		uint8_t* pixel = getPixel((size_t)left, (size_t)y);
+		for (size_t x = left; x <= right; ++x, pixel +=3) {
+			pixel[0] = color[0];
+			pixel[1] = color[1];
+			pixel[2] = color[2];
+		}
 	}
 }

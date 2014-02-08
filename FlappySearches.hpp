@@ -15,4 +15,6 @@ Rectangle findGameWindow(const VideoFrame& frame);
 
 Point findBeakLocation(const VideoFrame& frame);
 
+Rectangle findBird(const VideoFrame& frame, const Point beak);
+
 #endif

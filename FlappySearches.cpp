@@ -11,11 +11,13 @@ using namespace std;
 
 namespace {
 
-array<uint8_t, 3> flappySkyRGB = { 112, 198, 206 };
-array<uint8_t, 3> flappyGroundRGB = { 221, 218, 147 };
-array<uint8_t, 3> beakRGB = { 244, 106, 78 };
+const array<uint8_t, 3> flappySkyRGB = { 112, 198, 206 };
+const array<uint8_t, 3> flappyGroundRGB = { 221, 218, 147 };
+const array<uint8_t, 3> beakRGB = { 244, 106, 78 };
 
-// std::vector<uint8_t[3]> = { beakRGB,
+const vector<array<uint8_t, 3>> birdRGBs = { beakRGB, { 252, 239, 40}, { 249, 187, 4} };
+
+const float normalizedBirdSize = 62.0f / 500.0f; // Size of the bird relative to the screen's width
 
 inline bool pixelIsApprox(const uint8_t* pix, array<uint8_t, 3> to, int tolerance = 5)
 {
@@ -131,4 +133,25 @@ Point findBeakLocation(const VideoFrame& frame)
 	sort(begin(beakRects), end(beakRects), biggestRect);
 
 	return beakRects[0].getCenter();
+}
+
+Rectangle findBird(const VideoFrame& frame, const Point beak)
+{
+	Rectangle within(beak);
+	within.expandBy((int)(normalizedBirdSize * (float)frame.getWidth()));
+	within.constrainBy(Rectangle(0, 0, (int)frame.getWidth() - 1, (int)frame.getHeight() - 1));
+
+	Rectangle bird(beak);
+
+	for (int y = within.top; y <= within.bottom; ++y) {
+		const uint8_t* pixel = frame.getPixel((size_t)within.left, (size_t)y);
+		for (int x = within.left; x <= within.right; ++x, pixel +=3) {
+			if (any_of(begin(birdRGBs), end(birdRGBs),
+			        [=](const array<uint8_t, 3>& color) { return pixelIsApprox(pixel, color, 20); })) {
+				bird.expandTo(x, y);
+			}
+		}
+	}
+
+	return bird;
 }

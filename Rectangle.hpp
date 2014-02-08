@@ -1,6 +1,8 @@
 #ifndef __RECTANGLE_HPP__
 #define __RECTANGLE_HPP__
 
+#include <algorithm>
+
 struct Point
 {
 	Point(int x, int y) : x(x), y(y) { }
@@ -50,6 +52,22 @@ struct Rectangle {
 	{
 		expandTo(o.left, o.top);
 		expandTo(o.right, o.bottom);
+	}
+
+	void expandBy(int amount)
+	{
+		left -= amount;
+		top -= amount;
+		bottom += amount;
+		right += amount;
+	}
+
+	void constrainBy(Rectangle o)
+	{
+		left = std::max(left, o.left);
+		top = std::max(top, o.top);
+		right = std::min(right, o.right);
+		bottom = std::min(bottom, o.bottom);
 	}
 
 	// All bounds are inclusive

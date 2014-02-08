@@ -84,6 +84,8 @@ public:
 
 	void crosshairsAt(Point p, std::array<uint8_t, 3> color, int radius);
 
+	void rectangleAt(Rectangle r, std::array<uint8_t, 3> color);
+
 	// Currently too lazy/sleep-deprived to write a proper iterator class.
 	// Also wondering how I would do so if it needs to be default constructible and we need the depth.
 	template <typename T>

@@ -86,10 +86,14 @@ void DisplayWindow::play()
 
 		try {
 			Point beakLocation = findBeakLocation(*currentFrame);
-			Rectangle birdRect(beakLocation);
+			Rectangle bird = findBird(*currentFrame, beakLocation);
+			bird.expandBy(5); // Give ourselves some padding
 
-			std::array<uint8_t, 3> overlayColor = { 100, 255, 100 };
-			currentFrame->crosshairsAt(beakLocation, overlayColor, 20);
+			std::array<uint8_t, 3> crosshairColor = { 170, 40, 252 };
+			std::array<uint8_t, 3> birdOverlayColor = { 170, 40, 252 };
+			std::array<uint8_t, 3> pipeOverlayColor = { 0, 0, 0 };
+			currentFrame->rectangleAt(bird, birdOverlayColor);
+			currentFrame->crosshairsAt(beakLocation, crosshairColor, 30);
 		
 		}
 		catch(const Exceptions::Exception& e) {
