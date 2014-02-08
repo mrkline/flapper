@@ -21,6 +21,7 @@ std::shared_ptr<VideoFrame> BufferedFrameFetcher::getFrame()
 {
 	unique_lock<mutex> ml(frameLock);
 	frameCV.wait(ml, [this] { return frameReady; });
+	frameReady = false;
 	return frame;
 }
 
