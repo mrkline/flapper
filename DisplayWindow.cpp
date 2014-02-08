@@ -10,6 +10,7 @@
 #include "QGLCanvas.hpp"
 #include "X11ScreenIO.hpp"
 #include "FlappySearches.hpp"
+#include "BufferedFrameFetcher.hpp"
 
 using namespace std;
 
@@ -18,10 +19,9 @@ DisplayWindow::DisplayWindow(QWidget *parent) :
 	ui(new Ui::DisplayWindow),
 	canvas(new QGLCanvas),
 	btnStart(new QPushButton("Start")),
+	threadRunning(false),
 	screenIO(new X11ScreenIO)
 {
-	threadRunning = false; // Probably redundant
-
 	ui->setupUi(this);
 
 	// Set up a layout containing our canvas
@@ -32,7 +32,7 @@ DisplayWindow::DisplayWindow(QWidget *parent) :
 
 	connect(btnStart, &QPushButton::clicked, this, &DisplayWindow::startClicked);
 
-	canvas->setFrame(new QImage("placeholder.png"));
+	canvas->setFrame(unique_ptr<QImage>(new QImage("StartImage.jpg")));
 }
 
 DisplayWindow::~DisplayWindow()
@@ -46,6 +46,8 @@ DisplayWindow::~DisplayWindow()
 
 void DisplayWindow::play()
 {
+	namespace sc = std::chrono;
+
 	// First let's find the window. It's going to have a bunch of blue up top and some tan down below
 	screenIO->resetFocus();
 	auto fullscreenFrame = screenIO->getFrame();
@@ -65,6 +67,9 @@ void DisplayWindow::play()
 	catch(const Exceptions::Exception& e) {
 		fprintf(stderr, "Could not find game window with error:\n");
 		fprintf(stderr, "%s\nin function %s\n", e.message.c_str(), e.callingFunction.c_str());
+		canvas->setFrame(fullscreenFrame);
+		this_thread::sleep_for(sc::seconds(5));
+		canvas->setFrame(unique_ptr<QImage>(new QImage("ErrorImage.jpg")));
 		return;
 	}
 
@@ -76,19 +81,23 @@ void DisplayWindow::play()
 
 	auto gameCap = screenIO->getFrame();
 
-
-	QImage gameImage(gameCap->getPixels(),
-	                 gameCap->getWidth(),
-	                 gameCap->getHeight(),
-	                 QImage::Format_RGB888);
-	gameImage.save("game_test.png");
-
+	// canvas->setFrame(fullscreenFrame);
+	// this_thread::sleep_for(sc::seconds(5));
 	canvas->setFrame(gameCap);
+
+	BufferedFrameFetcher fetcher(screenIO.get());
 
 	// While we're not told to exit and there are more frames to display
 	while (threadRunning) {
-
-		// std::this_thread::sleep_for(sc::milliseconds(1000));
+		auto currentFrame = fetcher.getFrame();
+		unique_ptr<QImage> loopTest(new QImage(currentFrame->getPixels(),
+		                currentFrame->getWidth(),
+		                currentFrame->getHeight(),
+		                QImage::Format_RGB888));
+		canvas->setFrame(std::move(loopTest));
+		// canvas->setFrame(fetcher.getFrame());
+		// fetcher.getFPSTracker().printPeriodically("Fetcher FPS: ");
+		// fflush(stdout);
 		// canvas->setFrame(nextMask);
 		// Post a new order to repaint. Done this way because another thread cannot directly call repaint()
 		//QCoreApplication::postEvent(canvas, new QPaintEvent(canvas->rect()));

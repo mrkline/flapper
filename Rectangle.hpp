@@ -1,6 +1,13 @@
 #ifndef __RECTANGLE_HPP__
 #define __RECTANGLE_HPP__
 
+struct Point
+{
+	Point(int x, int y) : x(x), y(y) { }
+
+	int x, y;
+};
+
 struct Rectangle {
 
 	Rectangle() : left(0), top(0), right(0), bottom(0) { }
@@ -10,6 +17,9 @@ struct Rectangle {
 	int getWidth() const { return right - left + 1; }
 	int getHeight() const { return bottom - top + 1; }
 	int getArea() const { return getWidth() * getHeight(); }
+	int getCenterX() const { return (left + right) / 2; }
+	int getCenterY() const { return (top + bottom) / 2; }
+	Point getCenter() const { return Point(getCenterX(), getCenterY()); }
 
 	int contains(int x, int y) const { return x >= left && x <= right && y >= top && y <= bottom; }
 

@@ -30,8 +30,8 @@ private:
 
 	Display* mainDisplay;
 	Window rootWindow;
-	int capX, capY;
-	unsigned int capWidth, capHeight;
+	unsigned int screenWidth, screenHeight;
+	Rectangle capRect;
 };
 
 #endif

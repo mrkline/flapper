@@ -1,6 +1,7 @@
 #ifndef __Q_GL_CANVAS_HPP__
 #define __Q_GL_CANVAS_HPP__
 
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <QGLWidget>
@@ -17,7 +18,7 @@ public:
 	/// Sets the image that should be drawn on the canvas
 	void setFrame(const std::shared_ptr<VideoFrame>& newFrame);
 
-	void setFrame(QImage* newFrame);
+	void setFrame(std::unique_ptr<QImage>&& newFrame);
 
 protected:
 
@@ -33,7 +34,10 @@ private:
 	std::unique_ptr<QImage> img;
 
 	/// Guarantees nobody is accessing image pixels at the same time
-	std::mutex pixelsMutex;
+	std::recursive_mutex pixelsMutex;
+
+	// Keep us from overflowing the paint queue
+	std::atomic<bool> paintMessageSent;
 };
 
 #endif

@@ -23,7 +23,8 @@ DisplayWindow.cpp \
 QGLCanvas.cpp \
 VideoFrame.cpp \
 X11ScreenIO.cpp \
-FlappySearches.cpp
+FlappySearches.cpp \
+BufferedFrameFetcher.cpp
 
 HEADERS  += DisplayWindow.hpp \
 QGLCanvas.hpp \
@@ -31,7 +32,9 @@ VideoFrame.hpp \
 ScreenIO.hpp \
 X11ScreenIO.hpp \
 FlappySearches.hpp \
+FPSTracker.hpp \
 Rectangle.hpp \
+BufferedFrameFetcher.hpp \
 Exceptions.hpp \
 MKMath.hpp
 
