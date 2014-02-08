@@ -8,7 +8,7 @@ void VideoFrame::rgb2hsv()
 
 	if (depth != 3)
 		throw Exceptions::ArgumentException("The frame must be 24-bit RGB", __FUNCTION__);
-	
+
 	uint8_t* pix = pixels;
 	uint8_t* end = pix + getTotalSize();
 

@@ -35,7 +35,7 @@ public:
 			lastPrinted = Clock::now();
 		}
 	}
-	
+
 private:
 
 	typedef std::chrono::high_resolution_clock Clock;

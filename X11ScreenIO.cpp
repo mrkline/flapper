@@ -52,7 +52,7 @@ std::shared_ptr<VideoFrame> X11ScreenIO::getFrame()
 	std::shared_ptr<VideoFrame> ret = make_shared<VideoFrame>(capRect.getWidth(), capRect.getHeight(), 3, false);
 
 	auto curr = ret->getPixels();
-	
+
 	for (int y = 0; y < img->height; ++y) {
 		uint32_t* line_ptr = (uint32_t*) &(img->data)[y * img->bytes_per_line];
 		for (int x = 0; x < img->width; ++x) {

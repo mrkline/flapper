@@ -34,7 +34,7 @@ private:
 	std::unique_ptr<std::thread> playThread; ///< Reads from the video file and updates the displayed frame
 
 	std::unique_ptr<ScreenIO> screenIO;
-	
+
 	void play(); ///< The procedure that runs inside the video update thread
 
 private slots:

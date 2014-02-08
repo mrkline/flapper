@@ -95,7 +95,7 @@ void DisplayWindow::play()
 
 			uint8_t overlayColor[3] = { 100, 255, 100 };
 			currentFrame->crosshairsAt(beakLocation, overlayColor, 20);
-			
+		
 		}
 		catch(const Exceptions::Exception& e) {
 			fprintf(stderr, "Analysis error:\n");

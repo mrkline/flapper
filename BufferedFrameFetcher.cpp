@@ -5,7 +5,7 @@
 using namespace std;
 
 BufferedFrameFetcher::BufferedFrameFetcher(ScreenIO* sio) : io(sio)
-	
+
 {
 	threadRunning = true;
 	worker.reset(new std::thread(&BufferedFrameFetcher::workerProc, this));
