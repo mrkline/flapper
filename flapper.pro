@@ -11,8 +11,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets opengl
 TARGET = flapper
 TEMPLATE = app
 
-# CONFIG += c++11 debug_and_release
-CONFIG += c++11 debug
+#CONFIG += c++11 debug
+CONFIG += c++11 release
 
 LIBS += -lX11
 

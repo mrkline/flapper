@@ -27,12 +27,13 @@ struct Rectangle {
 
 	int contains(int x, int y) const { return x >= left && x <= right && y >= top && y <= bottom; }
 
-	int adjacentTo(int x, int y) const { return x >= left - 1 && x <= right + 1 && y >= top - 1 && y <= bottom + 1; }
+	int adjacentTo(int x, int y, int tol = 1) const
+	{ return x >= left - tol && x <= right + tol && y >= top - tol && y <= bottom + tol; }
 
-	int adjacentTo(Rectangle o) const
+	int adjacentTo(Rectangle o, int tol = 1) const
 	{
 		// http://stackoverflow.com/a/306332/713961
-		return left - 1 <= o.right && right + 1 >= o.left && top - 1 <= o.bottom && bottom + 1 >= o.top;
+		return left - tol <= o.right && right + tol >= o.left && top - tol <= o.bottom && bottom + tol >= o.top;
 	}
 
 	void expandTo(int x, int y)

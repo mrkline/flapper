@@ -15,7 +15,8 @@ const array<uint8_t, 3> flappySkyRGB = { 112, 198, 206 };
 const array<uint8_t, 3> flappyGroundRGB = { 221, 218, 147 };
 const array<uint8_t, 3> beakRGB = { 244, 106, 78 };
 
-const vector<array<uint8_t, 3>> birdRGBs = { beakRGB, { 252, 239, 40}, { 249, 187, 4} };
+const vector<array<uint8_t, 3>> birdRGBs = { beakRGB, {252, 239, 40}, {249, 187, 4} };
+const vector<array<uint8_t, 3>> pipeRGBs = { {205, 252, 113}, {139, 230, 68}, {96, 182, 34}, {66, 121, 25} };
 
 const float normalizedBirdSize = 62.0f / 500.0f; // Size of the bird relative to the screen's width
 
@@ -54,7 +55,6 @@ void mergeAdjacentRects(vector<Rectangle>& rectList)
 }
 
 auto biggestRect = [](const Rectangle& l, const Rectangle& r) { return l.getArea() > r.getArea(); };
-
 
 } // end anonymous namespace
 
@@ -154,4 +154,29 @@ Rectangle findBird(const VideoFrame& frame, const Point beak)
 	}
 
 	return bird;
+}
+
+vector<Rectangle> findPipes(const VideoFrame& frame)
+{
+	vector<Rectangle> pipes;
+
+	frame.foreachPixel([&](const uint8_t* pix, int x, int y) {
+
+		auto adjacent = [=](const Rectangle& r) { return r.adjacentTo(x, y, 5); };
+
+		if (any_of(begin(pipeRGBs), end(pipeRGBs),
+				[=](const array<uint8_t, 3>& color) { return pixelIsApprox(pix, color, 20); })) {
+			auto inside = find_if(begin(pipes), end(pipes), adjacent);
+			if (inside != end(pipes))
+				inside->expandTo(x, y);
+			else
+				pipes.emplace_back(x, y, x, y);
+		}
+
+		return true;
+	});
+
+	mergeAdjacentRects(pipes);
+
+	return pipes;
 }

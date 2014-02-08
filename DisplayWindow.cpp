@@ -80,6 +80,9 @@ void DisplayWindow::play()
 
 	BufferedFrameFetcher fetcher(screenIO.get());
 
+	FPSTracker processingTracker;
+	FPSTracker failureTracker;
+
 	// While we're not told to exit and there are more frames to display
 	while (threadRunning) {
 		auto currentFrame = fetcher.getFrame();
@@ -88,21 +91,38 @@ void DisplayWindow::play()
 			Point beakLocation = findBeakLocation(*currentFrame);
 			Rectangle bird = findBird(*currentFrame, beakLocation);
 			bird.expandBy(5); // Give ourselves some padding
+			auto pipes = findPipes(*currentFrame);
 
 			std::array<uint8_t, 3> crosshairColor = { 170, 40, 252 };
 			std::array<uint8_t, 3> birdOverlayColor = { 170, 40, 252 };
 			std::array<uint8_t, 3> pipeOverlayColor = { 0, 0, 0 };
 			currentFrame->rectangleAt(bird, birdOverlayColor);
 			currentFrame->crosshairsAt(beakLocation, crosshairColor, 30);
-		
+			for (auto& pipe : pipes)
+				currentFrame->rectangleAt(pipe, pipeOverlayColor);
+
+			processingTracker.onFrame();
 		}
 		catch(const Exceptions::Exception& e) {
-			fprintf(stderr, "Analysis error: %s\n", e.message.c_str());
-			fflush(stderr);
+			failureTracker.onFrame();
+
+			/*
+			static int num = 1;
+			QImage errorImg(currentFrame->getPixels(),
+							currentFrame->getWidth(),
+							currentFrame->getHeight(),
+							QImage::Format_RGB888);
+			QString fn = "wat";
+			fn += QString::number(num++);
+			fn += ".png";
+			errorImg.save(fn);
+			*/
 		}
 
 		canvas->setFrame(currentFrame);
-		fetcher.getFPSTracker().printPeriodically("Fetcher FPS: ");
+		fetcher.getFPSTracker().printPeriodically("Recording FPS: ");
+		processingTracker.printPeriodically("Processing FPS: ");
+		failureTracker.printPeriodically("Failures/second: ");
 	}
 }
 
