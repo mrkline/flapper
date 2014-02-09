@@ -55,7 +55,8 @@ void BirdAI::updateState(StatusPacket& pack, VideoFrame& frame)
 
 	cruisingAltitude = std::min(pack.gameRect.bottom - 100, pack.gameRect.getCenter().y + 50);
 
-	birdY = pack.bird.getCenter().y;
+	bird = pack.bird;
+	const int birdY = bird.getCenter().y;
 	birdLowestRadius = std::max(birdLowestRadius, pack.bird.bottom - birdY);
 	birdHighestRadius = std::max(birdHighestRadius, birdY - pack.bird.top);
 	birdFarthestLeadingEdge = std::max(birdFarthestLeadingEdge, pack.bird.right);
@@ -107,6 +108,13 @@ void BirdAI::updateState(StatusPacket& pack, VideoFrame& frame)
 		closestObstaclesLeft = closestObstaclesRight = gapTop = gapBottom = -1;
 		return;
 	}
+	else if (closestObstaclesLeft == -1) {
+		pipeTimerStart = Clock::now();
+	}
+	else if (jumpWidth == -1 && jumpDuration.count() > 0 && Clock::now() - pipeTimerStart >= jumpDuration) {
+		jumpWidth = pack.gameRect.right - closestObstaclesLeft;
+		printf("Jump width is %d pixels\n", jumpWidth);
+	}
 
 	if (obstacles.size() % 2 != 0)
 		throw Exceptions::AIException("Pipes should come in pairs", __FUNCTION__);
@@ -155,15 +163,16 @@ void BirdAI::fall()
 
 void BirdAI::howHigh()
 {
+	const int birdY = bird.getCenter().y;
 	if (currentVelocity >= 0 && birdY >= cruisingAltitude) {
 		printf("AI: Starting jump %d\n", (int)jumpHeights.size() + 1);
 		jumpHeight = birdY;
-		timerStart = Clock::now();
+		jumpTimerStart = Clock::now();
 		fireRockets();
 	}
 	else if (currentVelocity >= 0 && lastVelocity < 0) {
 		jumpHeights.emplace_back(jumpHeight - birdY);
-		jumpDurations.emplace_back(Clock::now() - timerStart);
+		jumpDurations.emplace_back(Clock::now() - jumpTimerStart);
 		printf("AI: Jump test %d: %d pixels\n", (int)jumpHeights.size(), jumpHeights.back());
 		if (jumpHeights.size() == 5) {
 			jumpHeight = 0;
@@ -183,34 +192,44 @@ void BirdAI::howHigh()
 
 void BirdAI::gauntlet()
 {
-	const int fireDelayCompensation = 15;
+	// Compensate for the delay in actually sending the click
+	const int fireDelayCompensation = 40;
 
-	// printf("y %d", birdY);
+	bool in = false;
 
-	/*
-	int ceil;
-	if (gapBottom < 0)
-		ceil = cruisingAltitude - jumpHeight;
-	else
-		ceil = gapTop;
-	const int adjustedHigh = birdY - birdHighestRadius - fireDelayCompensation - jumpHeight;
-	printf("(ah %d ce %d)\n", adjustedHigh, ceil);
-	*/
-	
-	int target;
-	if (gapBottom < 0)
-		target = cruisingAltitude - jumpHeight / 2;
-	else
-		target = gapTop + (gapBottom - gapTop) / 2;
+	const int birdFarthestRight = bird.getCenter().x + birdFarthestLeadingEdge;
+
+	int floor;
+	if (gapBottom < 0) {
+		floor = cruisingAltitude + jumpHeight / 2;
+	}
+	else if (bird.left <= closestObstaclesRight && birdFarthestRight >= closestObstaclesLeft) {
+		floor = gapBottom;
+		in = true;
+	}
+	else if (closestObstaclesLeft - birdFarthestRight <= jumpWidth * 2) {
+		const float slope = (float)jumpHeight / (float)jumpWidth;
+		// Our slope up into the gap
+		floor = gapBottom + (int)(slope * (float)(closestObstaclesLeft - birdFarthestRight));
+		// Don't let us run into the ground
+		floor = std::min(floor, floorY - jumpHeight);
+		// printf("b %d, f %d\n", baseFloor, floor);
+	}
+	else {
+		// Climb faster if we're more than a jumpWidth away it
+		floor = gapBottom + jumpHeight / 3;
+	}
 
 
-	const int adjustedTarget = target - fireDelayCompensation;
+	const int adjustedFloor = floor - fireDelayCompensation;
 	// printf("(al %d fl %d)", adjustedLow, floor);
 
 	// printf("\n");
 	// if (currentVelocity >= 0 && (adjustedLow >= floor || adjustedHigh >= ceil))
-	if (currentVelocity >= 0 && birdY >= adjustedTarget + jumpHeight / 2)
+	if (currentVelocity >= 0 && bird.getCenter().y + birdLowestRadius >= adjustedFloor) {
+		if (in) printf("in ");
 		fireRockets();
+	}
 }
 
 void BirdAI::waitForLiftoff()
@@ -227,5 +246,5 @@ void BirdAI::fireRockets()
 	io->click();
 	returnToState = currentState;
 	currentState = AS_WAIT_FOR_LIFTOFF;
-	printf("[Rocket Intensifies]\n");
+	printf("[Upwardness Intensifies]\n");
 }

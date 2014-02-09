@@ -84,6 +84,7 @@ private:
 
 	int jumpHeight; ///< How high we can jump
 	FloatingSeconds jumpDuration; ///< How long it takes us to jump that high
+	int jumpWidth = -1; ///< The width of a the upward arc of a jump
 
 	int cruisingAltitude; ///< Where to start for jump runs
 
@@ -100,14 +101,15 @@ private:
 	int birdHighestRadius = 0; ///< The highest point of the bird from its center
 	int birdFarthestLeadingEdge = 0; ///< The farthest forward the bird is from its center
 
-	int birdY; ///< The bird's current Y coordinate
+	Rectangle bird; ///< The bird's rectangle
 	int floorY; ///< The floor's Y coordinate
 	int closestObstaclesLeft; ///< The left bound of the nearest obstacle
 	int closestObstaclesRight; ///< The right bound of the nearest obstacle
 	int gapTop; ///< The top of the gap through which we must pass
 	int gapBottom; ///< The bottom of the gap through which we must pass
 
-	Clock::time_point timerStart; ///< Used for determining speeds, distances, etc.
+	Clock::time_point jumpTimerStart; ///< Used for determining speeds, distances, etc.
+	Clock::time_point pipeTimerStart; ///< Used for determining jumpWidth
 };
 
 #endif
