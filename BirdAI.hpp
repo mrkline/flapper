@@ -1,8 +1,10 @@
 #ifndef __BIRD_AI_HPP__
 #define __BIRD_AI_HPP__
 
+#include <chrono>
 #include <vector>
 
+#include "PhysicsAnalysis.hpp"
 #include "Exceptions.hpp"
 #include "Rectangle.hpp"
 
@@ -45,11 +47,12 @@ public:
 
 private:
 
+	typedef std::chrono::high_resolution_clock Clock;
+	typedef std::chrono::duration<float, std::chrono::seconds::period> FloatingSeconds;
+
 	enum State {
 		AS_LAUNCH,
-		AS_LEVEL_OFF, ///< Level off
 		AS_HOW_HIGH, ///< Determine jump characteristics
-		AS_HOW_LOW, ///< Determine drop characteristics
 		AS_GAUNTLET, ///< Let's do this
 		AS_WAIT_FOR_LIFTOFF ///< Special state: waiting to go up
 	};
@@ -58,11 +61,7 @@ private:
 
 	void launch();
 
-	void levelOff();
-
 	void howHigh();
-
-	void howLow();
 
 	void gauntlet();
 
@@ -77,6 +76,11 @@ private:
 
 	State returnToState;
 
+	int jumpHeight; ///< How high we can jump
+	int cruisingAltitude; ///< Where to start for jump runs
+
+	std::vector<int> jumpRuns;
+
 	// If some of these make no sense, look at updateState
 	int birdY;
 	int birdLowestRadius;
@@ -87,6 +91,8 @@ private:
 	int closestObstaclesRight;
 	int gapTop;
 	int gapBottom;
+
+	Clock::time_point timerStart;
 };
 
 #endif

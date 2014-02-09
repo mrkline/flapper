@@ -26,6 +26,8 @@ public:
 
 	bool hasAcceleration() const { return !accelLog.empty(); }
 
+	bool fullyAccumulated() const { return accelLog.size() == maxSamples; }
+
 	PhysicsAnalysis(const PhysicsAnalysis&) = delete;
 	PhysicsAnalysis& operator=(const PhysicsAnalysis&) = delete;
 

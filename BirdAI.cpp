@@ -1,6 +1,5 @@
 #include "BirdAI.hpp"
 
-#include "PhysicsAnalysis.hpp"
 #include "ScreenIO.hpp"
 
 #include <sstream>
@@ -9,8 +8,9 @@ using namespace std;
 
 namespace {
 
-auto highestRect = [](const Rectangle& l, const Rectangle& r) { return l.bottom > r.bottom; };
+auto highestRect = [](const Rectangle& l, const Rectangle& r) { return l.bottom < r.bottom; };
 auto leftMostRect = [](const Rectangle& l, const Rectangle& r) { return l.left < r.left; };
+auto filterSmall = [](const Rectangle& r) { return r.getArea() < 20; };
 
 } // end anonymous namespace
 
@@ -22,14 +22,8 @@ void BirdAI::iterate(StatusPacket& pack)
 		case AS_LAUNCH:
 			launch();
 			break;
-		case AS_LEVEL_OFF:
-			levelOff();
-			break;
 		case AS_HOW_HIGH:
 			howHigh();
-			break;
-		case AS_HOW_LOW:
-			howLow();
 			break;
 		case AS_GAUNTLET:
 			gauntlet();
@@ -44,13 +38,32 @@ void BirdAI::updateState(StatusPacket& pack)
 {
 	const int close = 5;
 
+	// All other coordinates are relative to this guy.
+	pack.gameRect.right -= pack.gameRect.left;
+	pack.gameRect.bottom -= pack.gameRect.top;
+	pack.gameRect.left = 0;
+	pack.gameRect.top = 0;
+
+	cruisingAltitude = std::min(pack.gameRect.bottom - 100, pack.gameRect.getCenter().y + 100);
+
 	birdY = pack.bird.getCenter().y;
 	birdLowestRadius = std::max(birdLowestRadius, pack.bird.bottom - birdY);
 	birdHighestRadius = std::max(birdHighestRadius, birdY - pack.bird.top);
 	birdFarthestLeadingEdge = std::max(birdFarthestLeadingEdge, pack.bird.right);
 
 	auto& obstacles = pack.obstacles;
+
+	obstacles.erase(remove_if(begin(obstacles), end(obstacles), filterSmall), end(obstacles));
+
 	sort(begin(obstacles), end(obstacles), highestRect);
+
+	/*
+	printf("Obstacles:\n");
+	for (const auto& r : obstacles) {
+		printf("\t(%d,%d; %d,%d)\n", r.left, r.top, r.right, r.bottom);
+	}
+	fflush(stdout);
+	*/
 	
 	auto& floor = obstacles.back();
 
@@ -88,9 +101,7 @@ void BirdAI::updateState(StatusPacket& pack)
 	                end(obstacles));
 
 	if (obstacles.empty()) {
-		closestObstaclesLeft = closestObstaclesRight = pack.gameRect.right;
-		gapTop = pack.gameRect.top;
-		gapBottom = pack.gameRect.bottom;
+		closestObstaclesLeft = closestObstaclesRight = gapTop = gapBottom = -1;
 		return;
 	}
 
@@ -123,24 +134,34 @@ void BirdAI::updateState(StatusPacket& pack)
 
 void BirdAI::launch()
 {
-	currentState = AS_LEVEL_OFF;
+	currentState = AS_HOW_HIGH;
 	fireRockets();
 	printf("AI: Launch sequence initiated\n");
 	fflush(stdout);
 }
 
-void BirdAI::levelOff()
-{
-	if (physics.getAverageVelocity() >= 0) {
-	}
-}
-
 void BirdAI::howHigh()
 {
-}
-
-void BirdAI::howLow()
-{
+	if (physics.getAverageVelocity() >= 0) {
+		if (birdY >= cruisingAltitude) {
+			printf("AI: Starting jump %d", (int)jumpRuns.size() + 1);
+			jumpHeight = birdY;
+			fireRockets();
+		}
+		else {
+			jumpRuns.emplace_back(jumpHeight - birdY);
+			printf("AI: Jump test %d: %d pixels\n", (int)jumpRuns.size(), jumpRuns.back());
+			if (jumpRuns.size() == 3) {
+				jumpHeight = 0;
+				for (int run : jumpRuns)
+					jumpHeight += run;
+				jumpHeight /= jumpRuns.size();
+				printf("AI: Averaged jump height is %d. Beginning run\n", jumpHeight);
+				currentState = AS_GAUNTLET;
+			}
+		}
+	}
+	fflush(stdout);
 }
 
 void BirdAI::gauntlet()
