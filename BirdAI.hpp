@@ -42,7 +42,9 @@ public:
 		std::vector<Rectangle> obstacles;
 	};
 
-	BirdAI(PhysicsAnalysis& phys, ScreenIO* sio) : currentState(AS_LAUNCH), physics(phys), io(sio) { }
+	BirdAI(PhysicsAnalysis& phys, ScreenIO* sio) :
+		currentState(AS_LAUNCH), physics(phys), io(sio)
+	{ }
 
 	void iterate(StatusPacket& pack, VideoFrame& frame);
 
@@ -81,18 +83,23 @@ private:
 	State returnToState;
 
 	int jumpHeight; ///< How high we can jump
+	FloatingSeconds jumpDuration;
+
 	int cruisingAltitude; ///< Where to start for jump runs
 
-	std::vector<int> jumpRuns;
+	std::vector<int> jumpHeights;
+	std::vector<FloatingSeconds> jumpDurations;
 
 	float currentVelocity;
 	float lastVelocity;
 
 	// If some of these make no sense, look at updateState
-	int birdY;
+
 	int birdLowestRadius = 0;
 	int birdHighestRadius = 0;
 	int birdFarthestLeadingEdge = 0;
+
+	int birdY;
 	int floorY;
 	int closestObstaclesLeft;
 	int closestObstaclesRight;

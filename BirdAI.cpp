@@ -156,19 +156,25 @@ void BirdAI::fall()
 void BirdAI::howHigh()
 {
 	if (currentVelocity >= 0 && birdY >= cruisingAltitude) {
-		printf("AI: Starting jump %d\n", (int)jumpRuns.size() + 1);
+		printf("AI: Starting jump %d\n", (int)jumpHeights.size() + 1);
 		jumpHeight = birdY;
+		timerStart = Clock::now();
 		fireRockets();
 	}
 	else if (currentVelocity >= 0 && lastVelocity < 0) {
-		jumpRuns.emplace_back(jumpHeight - birdY);
-		printf("AI: Jump test %d: %d pixels\n", (int)jumpRuns.size(), jumpRuns.back());
-		if (jumpRuns.size() == 5) {
+		jumpHeights.emplace_back(jumpHeight - birdY);
+		jumpDurations.emplace_back(Clock::now() - timerStart);
+		printf("AI: Jump test %d: %d pixels\n", (int)jumpHeights.size(), jumpHeights.back());
+		if (jumpHeights.size() == 5) {
 			jumpHeight = 0;
+			jumpDuration = FloatingSeconds::zero();
 			// Throw out the first
-			for (size_t i = 1; i < jumpRuns.size(); ++i)
-				jumpHeight += jumpRuns[i];
-			jumpHeight /= (jumpRuns.size() - 1);
+			for (size_t i = 1; i < jumpHeights.size(); ++i) {
+				jumpHeight += jumpHeights[i];
+				jumpDuration += jumpDurations[i];
+			}
+			jumpHeight /= (jumpHeights.size() - 1);
+			jumpDuration /= (jumpHeights.size() - 1);
 			printf("AI: Averaged jump height is %d. Beginning run\n", jumpHeight);
 			currentState = AS_GAUNTLET;
 		}
