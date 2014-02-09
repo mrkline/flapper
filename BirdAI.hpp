@@ -10,6 +10,7 @@
 
 class PhysicsAnalysis;
 class ScreenIO;
+class VideoFrame;
 
 namespace Exceptions {
 
@@ -43,7 +44,7 @@ public:
 
 	BirdAI(PhysicsAnalysis& phys, ScreenIO* sio) : currentState(AS_LAUNCH), physics(phys), io(sio) { }
 
-	void iterate(StatusPacket& pack);
+	void iterate(StatusPacket& pack, VideoFrame& frame);
 
 private:
 
@@ -52,14 +53,17 @@ private:
 
 	enum State {
 		AS_LAUNCH,
+		AS_FALLING, ///< Drop to our starting point (cruising altitude)
 		AS_HOW_HIGH, ///< Determine jump characteristics
 		AS_GAUNTLET, ///< Let's do this
 		AS_WAIT_FOR_LIFTOFF ///< Special state: waiting to go up
 	};
 
-	void updateState(StatusPacket& pack);
+	void updateState(StatusPacket& pack, VideoFrame& frame);
 
 	void launch();
+
+	void fall();
 
 	void howHigh();
 
@@ -81,11 +85,14 @@ private:
 
 	std::vector<int> jumpRuns;
 
+	float currentVelocity;
+	float lastVelocity;
+
 	// If some of these make no sense, look at updateState
 	int birdY;
-	int birdLowestRadius;
-	int birdHighestRadius;
-	int birdFarthestLeadingEdge;
+	int birdLowestRadius = 0;
+	int birdHighestRadius = 0;
+	int birdFarthestLeadingEdge = 0;
 	int floorY;
 	int closestObstaclesLeft;
 	int closestObstaclesRight;

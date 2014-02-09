@@ -1,6 +1,7 @@
 #include "BirdAI.hpp"
 
 #include "ScreenIO.hpp"
+#include "VideoFrame.hpp"
 
 #include <sstream>
 
@@ -14,13 +15,16 @@ auto filterSmall = [](const Rectangle& r) { return r.getArea() < 20; };
 
 } // end anonymous namespace
 
-void BirdAI::iterate(StatusPacket& pack)
+void BirdAI::iterate(StatusPacket& pack, VideoFrame& frame)
 {
-	updateState(pack);
+	updateState(pack, frame);
 
 	switch (currentState) {
 		case AS_LAUNCH:
 			launch();
+			break;
+		case AS_FALLING:
+			fall();
 			break;
 		case AS_HOW_HIGH:
 			howHigh();
@@ -32,11 +36,16 @@ void BirdAI::iterate(StatusPacket& pack)
 			waitForLiftoff();
 			break;
 	}
+
 }
 
-void BirdAI::updateState(StatusPacket& pack)
+void BirdAI::updateState(StatusPacket& pack, VideoFrame& frame)
 {
 	const int close = 5;
+	const std::array<uint8_t, 3> obstacleOverlayColor = { 0, 0, 0 };
+
+	lastVelocity = currentVelocity;
+	currentVelocity = physics.getAverageVelocity();
 
 	// All other coordinates are relative to this guy.
 	pack.gameRect.right -= pack.gameRect.left;
@@ -44,7 +53,7 @@ void BirdAI::updateState(StatusPacket& pack)
 	pack.gameRect.left = 0;
 	pack.gameRect.top = 0;
 
-	cruisingAltitude = std::min(pack.gameRect.bottom - 100, pack.gameRect.getCenter().y + 100);
+	cruisingAltitude = std::min(pack.gameRect.bottom - 100, pack.gameRect.getCenter().y + 50);
 
 	birdY = pack.bird.getCenter().y;
 	birdLowestRadius = std::max(birdLowestRadius, pack.bird.bottom - birdY);
@@ -57,15 +66,9 @@ void BirdAI::updateState(StatusPacket& pack)
 
 	sort(begin(obstacles), end(obstacles), highestRect);
 
-	/*
-	printf("Obstacles:\n");
-	for (const auto& r : obstacles) {
-		printf("\t(%d,%d; %d,%d)\n", r.left, r.top, r.right, r.bottom);
-	}
-	fflush(stdout);
-	*/
-	
 	auto& floor = obstacles.back();
+
+	frame.rectangleAt(floor, obstacleOverlayColor);
 
 	if (std::abs(floor.left - pack.gameRect.left) > close || std::abs(floor.right - pack.gameRect.right) > close) {
 		stringstream err;
@@ -126,6 +129,9 @@ void BirdAI::updateState(StatusPacket& pack)
 		top = &obstacles[1];
 	}
 
+	frame.rectangleAt(*top, obstacleOverlayColor);
+	frame.rectangleAt(*bottom, obstacleOverlayColor);
+
 	gapTop = top->bottom;
 	gapBottom = bottom->top;
 	closestObstaclesLeft = std::min(top->left, bottom->left);
@@ -134,31 +140,39 @@ void BirdAI::updateState(StatusPacket& pack)
 
 void BirdAI::launch()
 {
-	currentState = AS_HOW_HIGH;
+	currentState = AS_FALLING;
 	fireRockets();
 	printf("AI: Launch sequence initiated\n");
 	fflush(stdout);
 }
 
+void BirdAI::fall()
+{
+	if (currentVelocity >= 0) {
+		printf("Dropping to begin jump tests\n");
+		currentState = AS_HOW_HIGH;
+	}
+	fflush(stdout);
+}
+
 void BirdAI::howHigh()
 {
-	if (physics.getAverageVelocity() >= 0) {
-		if (birdY >= cruisingAltitude) {
-			printf("AI: Starting jump %d", (int)jumpRuns.size() + 1);
-			jumpHeight = birdY;
-			fireRockets();
-		}
-		else {
-			jumpRuns.emplace_back(jumpHeight - birdY);
-			printf("AI: Jump test %d: %d pixels\n", (int)jumpRuns.size(), jumpRuns.back());
-			if (jumpRuns.size() == 3) {
-				jumpHeight = 0;
-				for (int run : jumpRuns)
-					jumpHeight += run;
-				jumpHeight /= jumpRuns.size();
-				printf("AI: Averaged jump height is %d. Beginning run\n", jumpHeight);
-				currentState = AS_GAUNTLET;
-			}
+	if (currentVelocity >= 0 && birdY >= cruisingAltitude) {
+		printf("AI: Starting jump %d\n", (int)jumpRuns.size() + 1);
+		jumpHeight = birdY;
+		fireRockets();
+	}
+	else if (currentVelocity >= 0 && lastVelocity < 0) {
+		jumpRuns.emplace_back(jumpHeight - birdY);
+		printf("AI: Jump test %d: %d pixels\n", (int)jumpRuns.size(), jumpRuns.back());
+		if (jumpRuns.size() == 5) {
+			jumpHeight = 0;
+			// Throw out the first
+			for (size_t i = 1; i < jumpRuns.size(); ++i)
+				jumpHeight += jumpRuns[i];
+			jumpHeight /= (jumpRuns.size() - 1);
+			printf("AI: Averaged jump height is %d. Beginning run\n", jumpHeight);
+			currentState = AS_GAUNTLET;
 		}
 	}
 	fflush(stdout);
@@ -166,12 +180,24 @@ void BirdAI::howHigh()
 
 void BirdAI::gauntlet()
 {
+	const int fireDelayCompensation = 40;
+
+	int floor;
+	if (gapBottom < 0) // If there is no gap top
+		floor = cruisingAltitude;
+	else
+		floor = gapBottom;
+	
+	const int adjusted = birdY + birdLowestRadius + fireDelayCompensation;
+	printf("y %d adj %d fl %d\n", birdY, adjusted, floor);
+	if (currentVelocity >= 0 && adjusted >= floor)
+		fireRockets();
 }
 
 void BirdAI::waitForLiftoff()
 {
 	// Positive means we're going down
-	if (physics.getAverageVelocity() < 0) {
+	if (currentVelocity < 0) {
 		currentState = returnToState;
 		printf("AI: Liftoff\n");
 		fflush(stdout);
@@ -183,4 +209,6 @@ void BirdAI::fireRockets()
 	io->click();
 	returnToState = currentState;
 	currentState = AS_WAIT_FOR_LIFTOFF;
+	printf("[Rocket Intensifies]\n");
+	fflush(stdout);
 }

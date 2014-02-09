@@ -114,7 +114,13 @@ void DisplayWindow::play()
 			physics.logPosition(bird.getCenter().y);
 
 			BirdAI::StatusPacket statusPack(gameRect, bird, pipes);
-			ai.iterate(statusPack);
+
+			std::array<uint8_t, 3> crosshairColor = { 170, 40, 252 };
+			std::array<uint8_t, 3> birdOverlayColor = { 170, 40, 252 };
+			currentFrame->rectangleAt(bird, birdOverlayColor);
+			currentFrame->crosshairsAt(beakLocation, crosshairColor, 30);
+
+			ai.iterate(statusPack, *currentFrame);
 
 			/*
 			if (physics.hasAcceleration()) {
@@ -127,24 +133,11 @@ void DisplayWindow::play()
 				});
 			}
 			*/
-			
-
-			std::array<uint8_t, 3> crosshairColor = { 170, 40, 252 };
-			std::array<uint8_t, 3> birdOverlayColor = { 170, 40, 252 };
-			std::array<uint8_t, 3> pipeOverlayColor = { 0, 0, 0 };
-			currentFrame->rectangleAt(bird, birdOverlayColor);
-			currentFrame->crosshairsAt(beakLocation, crosshairColor, 30);
-			for (auto& pipe : pipes)
-				currentFrame->rectangleAt(pipe, pipeOverlayColor);
 
 			processingTracker.onFrame();
 		}
 		catch(const Exceptions::IOException& e) {
 			fprintf(stderr, "IO problem!\n%s in %s\n", e.message.c_str(), e.callingFunction.c_str());
-			return;
-		}
-		catch(const Exceptions::AIException& e) {
-			fprintf(stderr, "AI problem!\n%s in %s\n", e.message.c_str(), e.callingFunction.c_str());
 			return;
 		}
 		catch(const Exceptions::Exception& e) {
