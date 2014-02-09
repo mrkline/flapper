@@ -11,6 +11,9 @@
 #include "X11ScreenIO.hpp"
 #include "FlappySearches.hpp"
 #include "BufferedFrameFetcher.hpp"
+#include "FPSTracker.hpp"
+#include "PeriodicRunner.hpp"
+#include "PhysicsAnalysis.hpp"
 
 using namespace std;
 
@@ -83,6 +86,9 @@ void DisplayWindow::play()
 	FPSTracker processingTracker;
 	FPSTracker failureTracker;
 
+	PhysicsAnalysis physics(10);
+	PeriodicRunner<std::chrono::milliseconds> physicsPrinter(50);
+
 	// While we're not told to exit and there are more frames to display
 	while (threadRunning) {
 		auto currentFrame = fetcher.getFrame();
@@ -98,6 +104,19 @@ void DisplayWindow::play()
 			Rectangle bird = findBird(*currentFrame, beakLocation);
 			bird.expandBy(5); // Give ourselves some padding
 			auto pipes = findPipes(*currentFrame);
+
+			physics.logPosition(bird.getCenter().y);
+
+			if (physics.hasAcceleration()) {
+				physicsPrinter.runPeriodically([&physics]() {
+					printf("Physics: P: %4.3f, V: %4.3f, A: %4.3f\n",
+					       physics.getAveragePosition(),
+					       physics.getAverageVelocity(),
+					       physics.getAverageAcceleration());
+					fflush(stdout);
+				});
+			}
+			
 
 			std::array<uint8_t, 3> crosshairColor = { 170, 40, 252 };
 			std::array<uint8_t, 3> birdOverlayColor = { 170, 40, 252 };

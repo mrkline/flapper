@@ -5,10 +5,14 @@
 #include <mutex>
 #include <queue>
 
+#include "PeriodicRunner.hpp"
+
 /// A crude perforamnce measure
 class FPSTracker {
 
 public:
+
+	FPSTracker() : runner(1) { }
 
 	void onFrame()
 	{
@@ -27,13 +31,10 @@ public:
 
 	void printPeriodically(const char* message)
 	{
-		std::lock_guard<std::mutex> lg(printMutex);
-		if (Clock::now() >= lastPrinted + std::chrono::seconds(1))
-		{
+		runner.runPeriodically([message, this]() {
 			printf("%s%d\n", message, getFPS());
 			fflush(stdout);
-			lastPrinted = Clock::now();
-		}
+		});
 	}
 
 private:
@@ -42,8 +43,7 @@ private:
 
 	std::queue<Clock::time_point> framesInLastSecond;
 	std::mutex queueMutex;
-	Clock::time_point lastPrinted;
-	std::mutex printMutex;
+	PeriodicRunner<> runner;
 };
 
 #endif

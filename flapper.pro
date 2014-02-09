@@ -24,7 +24,8 @@ QGLCanvas.cpp \
 VideoFrame.cpp \
 X11ScreenIO.cpp \
 FlappySearches.cpp \
-BufferedFrameFetcher.cpp
+BufferedFrameFetcher.cpp \
+PhysicsAnalysis.cpp
 
 HEADERS  += DisplayWindow.hpp \
 QGLCanvas.hpp \
@@ -33,8 +34,10 @@ ScreenIO.hpp \
 X11ScreenIO.hpp \
 FlappySearches.hpp \
 FPSTracker.hpp \
+PeriodicRunner.hpp \
 Rectangle.hpp \
 BufferedFrameFetcher.hpp \
+PhysicsAnalysis.hpp \
 Exceptions.hpp \
 MKMath.hpp
 
