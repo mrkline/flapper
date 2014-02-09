@@ -143,7 +143,6 @@ void BirdAI::launch()
 	currentState = AS_FALLING;
 	fireRockets();
 	printf("AI: Launch sequence initiated\n");
-	fflush(stdout);
 }
 
 void BirdAI::fall()
@@ -152,7 +151,6 @@ void BirdAI::fall()
 		printf("Dropping to begin jump tests\n");
 		currentState = AS_HOW_HIGH;
 	}
-	fflush(stdout);
 }
 
 void BirdAI::howHigh()
@@ -175,22 +173,37 @@ void BirdAI::howHigh()
 			currentState = AS_GAUNTLET;
 		}
 	}
-	fflush(stdout);
 }
 
 void BirdAI::gauntlet()
 {
-	const int fireDelayCompensation = 40;
+	const int fireDelayCompensation = 15;
 
-	int floor;
-	if (gapBottom < 0) // If there is no gap top
-		floor = cruisingAltitude;
+	// printf("y %d", birdY);
+
+	/*
+	int ceil;
+	if (gapBottom < 0)
+		ceil = cruisingAltitude - jumpHeight;
 	else
-		floor = gapBottom;
+		ceil = gapTop;
+	const int adjustedHigh = birdY - birdHighestRadius - fireDelayCompensation - jumpHeight;
+	printf("(ah %d ce %d)\n", adjustedHigh, ceil);
+	*/
 	
-	const int adjusted = birdY + birdLowestRadius + fireDelayCompensation;
-	printf("y %d adj %d fl %d\n", birdY, adjusted, floor);
-	if (currentVelocity >= 0 && adjusted >= floor)
+	int target;
+	if (gapBottom < 0)
+		target = cruisingAltitude - jumpHeight / 2;
+	else
+		target = gapTop + (gapBottom - gapTop) / 2;
+
+
+	const int adjustedTarget = target - fireDelayCompensation;
+	// printf("(al %d fl %d)", adjustedLow, floor);
+
+	// printf("\n");
+	// if (currentVelocity >= 0 && (adjustedLow >= floor || adjustedHigh >= ceil))
+	if (currentVelocity >= 0 && birdY >= adjustedTarget + jumpHeight / 2)
 		fireRockets();
 }
 
@@ -200,7 +213,6 @@ void BirdAI::waitForLiftoff()
 	if (currentVelocity < 0) {
 		currentState = returnToState;
 		printf("AI: Liftoff\n");
-		fflush(stdout);
 	}
 }
 
@@ -210,5 +222,4 @@ void BirdAI::fireRockets()
 	returnToState = currentState;
 	currentState = AS_WAIT_FOR_LIFTOFF;
 	printf("[Rocket Intensifies]\n");
-	fflush(stdout);
 }
