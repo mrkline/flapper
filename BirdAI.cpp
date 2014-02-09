@@ -192,10 +192,9 @@ void BirdAI::howHigh()
 
 void BirdAI::gauntlet()
 {
-	// Compensate for the delay in actually sending the click
-	const int fireDelayCompensation = 40;
 
-	bool in = false;
+	bool inGap = false;
+	bool diving = currentVelocity >= 600;
 
 	const int birdFarthestRight = bird.getCenter().x + birdFarthestLeadingEdge;
 
@@ -205,7 +204,7 @@ void BirdAI::gauntlet()
 	}
 	else if (bird.left <= closestObstaclesRight && birdFarthestRight >= closestObstaclesLeft) {
 		floor = gapBottom;
-		in = true;
+		inGap = true;
 	}
 	else if (closestObstaclesLeft - birdFarthestRight <= jumpWidth * 2) {
 		const float slope = (float)jumpHeight / (float)jumpWidth;
@@ -217,17 +216,21 @@ void BirdAI::gauntlet()
 	}
 	else {
 		// Climb faster if we're more than a jumpWidth away it
-		floor = gapBottom + jumpHeight / 3;
+		floor = gapBottom + jumpHeight / 2;
 	}
 
+	// Compensate for the delay in actually sending the click
+	int adjustedFloor = floor - 30;
 
-	const int adjustedFloor = floor - fireDelayCompensation;
-	// printf("(al %d fl %d)", adjustedLow, floor);
+	// Compensate for reduce reation time in high downward velocities
+	if (diving)
+		adjustedFloor -= 20;
 
 	// printf("\n");
 	// if (currentVelocity >= 0 && (adjustedLow >= floor || adjustedHigh >= ceil))
 	if (currentVelocity >= 0 && bird.getCenter().y + birdLowestRadius >= adjustedFloor) {
-		if (in) printf("in ");
+		if (inGap) printf("[in] ");
+		if (diving) printf("[dive] ");
 		fireRockets();
 	}
 }
