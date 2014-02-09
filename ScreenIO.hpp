@@ -19,6 +19,13 @@ public:
 
 	/// Undoes any focusing we've done and takes frames of the entire screen again
 	virtual void resetFocus() = 0;
+
+	/// Moves the mouse to a given position
+	virtual void mouseTo(int x, int y) = 0;
+
+	/// clicks
+	virtual void click() = 0;
+
 };
 
 #endif

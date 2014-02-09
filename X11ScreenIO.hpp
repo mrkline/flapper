@@ -22,6 +22,10 @@ public:
 
 	void resetFocus() override;
 
+	void mouseTo(int x, int y);
+
+	void click();
+
 	// No copy or assign
 	X11ScreenIO(const X11ScreenIO&) = delete;
 	X11ScreenIO& operator=(const X11ScreenIO&) = delete;
