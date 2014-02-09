@@ -14,6 +14,7 @@
 #include "FPSTracker.hpp"
 #include "PeriodicRunner.hpp"
 #include "PhysicsAnalysis.hpp"
+#include "BirdAI.hpp"
 
 using namespace std;
 
@@ -89,6 +90,11 @@ void DisplayWindow::play()
 	PhysicsAnalysis physics(10);
 	PeriodicRunner<std::chrono::milliseconds> physicsPrinter(50);
 
+	BirdAI ai(physics, screenIO.get());
+
+	screenIO->mouseTo(gameRect.getCenter());
+	for (int i = 0; i < 10; ++i) screenIO->click();
+
 	// While we're not told to exit and there are more frames to display
 	while (threadRunning) {
 		auto currentFrame = fetcher.getFrame();
@@ -107,6 +113,10 @@ void DisplayWindow::play()
 
 			physics.logPosition(bird.getCenter().y);
 
+			BirdAI::StatusPacket statusPack(gameRect, bird, pipes);
+			ai.iterate(statusPack);
+
+			/*
 			if (physics.hasAcceleration()) {
 				physicsPrinter.runPeriodically([&physics]() {
 					printf("Physics: P: %4.3f, V: %4.3f, A: %4.3f\n",
@@ -116,6 +126,7 @@ void DisplayWindow::play()
 					fflush(stdout);
 				});
 			}
+			*/
 			
 
 			std::array<uint8_t, 3> crosshairColor = { 170, 40, 252 };
@@ -128,9 +139,16 @@ void DisplayWindow::play()
 
 			processingTracker.onFrame();
 		}
+		catch(const Exceptions::IOException& e) {
+			fprintf(stderr, "IO problem!\n%s in %s\n", e.message.c_str(), e.callingFunction.c_str());
+			return;
+		}
+		catch(const Exceptions::AIException& e) {
+			fprintf(stderr, "AI problem!\n%s in %s\n", e.message.c_str(), e.callingFunction.c_str());
+			return;
+		}
 		catch(const Exceptions::Exception& e) {
 			failureTracker.onFrame();
-
 			/*
 			static int num = 1;
 			QImage errorImg(currentFrame->getPixels(),

@@ -25,7 +25,8 @@ VideoFrame.cpp \
 X11ScreenIO.cpp \
 FlappySearches.cpp \
 BufferedFrameFetcher.cpp \
-PhysicsAnalysis.cpp
+PhysicsAnalysis.cpp \
+BirdAI.cpp
 
 HEADERS  += DisplayWindow.hpp \
 QGLCanvas.hpp \
@@ -38,6 +39,7 @@ PeriodicRunner.hpp \
 Rectangle.hpp \
 BufferedFrameFetcher.hpp \
 PhysicsAnalysis.hpp \
+BirdAI.hpp \
 Exceptions.hpp \
 MKMath.hpp
 

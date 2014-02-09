@@ -95,13 +95,17 @@ void X11ScreenIO::mouseTo(int x, int y)
 
 void X11ScreenIO::click()
 {
+	// Mad hax
+	system("xdotool click 1");
+	/*
 	XEvent event;
 	memset(&event, 0x00, sizeof(event));
 	event.type = ButtonPress;
 	event.xbutton.button = Button1;
 	event.xbutton.same_screen = True;
 
-	XQueryPointer(mainDisplay, rootWindow, &event.xbutton.root, &event.xbutton.window,
+	XQueryPointer(mainDisplay, RootWindow(mainDisplay, DefaultScreen(mainDisplay)),
+	              &event.xbutton.root, &event.xbutton.window,
 	              &event.xbutton.x_root, &event.xbutton.y_root,
 	              &event.xbutton.x, &event.xbutton.y, &event.xbutton.state);
 
@@ -128,4 +132,5 @@ void X11ScreenIO::click()
 		throw Exceptions::IOException("Could not release", __FUNCTION__);
 
 	XFlush(mainDisplay);
+	*/
 }

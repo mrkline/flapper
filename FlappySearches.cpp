@@ -43,11 +43,11 @@ void mergeAdjacentRects(vector<Rectangle>& rectList)
 	do {
 		mergedOne = false;
 
-		const Rectangle& last = rectList[rectList.size() - 1];
+		const Rectangle& last = rectList.back();
 		for (int i = (int)rectList.size() - 2; i >= 0; --i) {
 			if (rectList[i].adjacentTo(last)) {
 				rectList[i].expandTo(last);
-				rectList.erase(begin(rectList) + (rectList.size() - 1)); // erase last
+				rectList.pop_back(); // erase last
 				mergedOne = true;
 				break;
 			}

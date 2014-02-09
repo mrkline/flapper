@@ -20,6 +20,8 @@ public:
 	/// Undoes any focusing we've done and takes frames of the entire screen again
 	virtual void resetFocus() = 0;
 
+	void mouseTo(Point p) { mouseTo(p.x, p.y); }
+
 	/// Moves the mouse to a given position
 	virtual void mouseTo(int x, int y) = 0;
 
