@@ -7,6 +7,7 @@
 #include "PhysicsAnalysis.hpp"
 #include "Exceptions.hpp"
 #include "Rectangle.hpp"
+#include "PeriodicRunner.hpp"
 
 class PhysicsAnalysis;
 class ScreenIO;
@@ -43,7 +44,7 @@ public:
 	};
 
 	BirdAI(PhysicsAnalysis& phys, ScreenIO* sio) :
-		currentState(AS_LAUNCH), physics(phys), io(sio)
+		currentState(AS_LAUNCH), physics(phys), io(sio), clicker(200)
 	{ }
 
 	void iterate(StatusPacket& pack, VideoFrame& frame);
@@ -110,6 +111,7 @@ private:
 
 	Clock::time_point jumpTimerStart; ///< Used for determining speeds, distances, etc.
 	Clock::time_point pipeTimerStart; ///< Used for determining jumpWidth
+	PeriodicRunner<std::chrono::milliseconds> clicker;
 };
 
 #endif

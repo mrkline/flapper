@@ -193,23 +193,25 @@ void BirdAI::howHigh()
 void BirdAI::gauntlet()
 {
 
-	bool diving = currentVelocity >= 600;
+	bool diving = currentVelocity >= 500;
 
 	int slack = (gapBottom - gapTop) - jumpHeight;
-	int target = gapTpo + slack;
+	int target = gapTop + slack;
 
 	// Compensate for the delay in actually sending the click
 	target -= 30;
 
 	// Compensate for reduce reation time in high downward velocities
 	if (diving)
-		adjustedFloor -= 20;
+		target -= (int)(20.0f * currentVelocity / 500.0f);
 
 	// printf("\n");
 	// if (currentVelocity >= 0 && (adjustedLow >= floor || adjustedHigh >= ceil))
-	if (bird.getCenter().y - birdHighestRadius >= target + jumpHeight / 2) {
-		if (diving) printf("[dive] ");
-		fireRockets();
+	if (bird.top >= target + jumpHeight / 2) {
+		clicker.runPeriodically([=]() {
+			if (diving) printf("[dive] ");
+			fireRockets();
+		});
 	}
 }
 

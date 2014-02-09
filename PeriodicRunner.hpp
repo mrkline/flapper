@@ -2,6 +2,7 @@
 #define __PERIODIC_RUNNER_HPP__
 
 #include <chrono>
+#include <mutex>
 
 template <typename T = std::chrono::seconds>
 class PeriodicRunner {
