@@ -83,30 +83,31 @@ private:
 	State returnToState;
 
 	int jumpHeight; ///< How high we can jump
-	FloatingSeconds jumpDuration;
+	FloatingSeconds jumpDuration; ///< How long it takes us to jump that high
 
 	int cruisingAltitude; ///< Where to start for jump runs
 
+	// Used for calculating jump height and duration
 	std::vector<int> jumpHeights;
 	std::vector<FloatingSeconds> jumpDurations;
 
-	float currentVelocity;
-	float lastVelocity;
+	float currentVelocity; ///< Current vertical velocity of the bird
+	float lastVelocity; ///< Previous vertical velocity of the bird
 
 	// If some of these make no sense, look at updateState
 
-	int birdLowestRadius = 0;
-	int birdHighestRadius = 0;
-	int birdFarthestLeadingEdge = 0;
+	int birdLowestRadius = 0; ///< The lowest point of the bird from its center
+	int birdHighestRadius = 0; ///< The highest point of the bird from its center
+	int birdFarthestLeadingEdge = 0; ///< The farthest forward the bird is from its center
 
-	int birdY;
-	int floorY;
-	int closestObstaclesLeft;
-	int closestObstaclesRight;
-	int gapTop;
-	int gapBottom;
+	int birdY; ///< The bird's current Y coordinate
+	int floorY; ///< The floor's Y coordinate
+	int closestObstaclesLeft; ///< The left bound of the nearest obstacle
+	int closestObstaclesRight; ///< The right bound of the nearest obstacle
+	int gapTop; ///< The top of the gap through which we must pass
+	int gapBottom; ///< The bottom of the gap through which we must pass
 
-	Clock::time_point timerStart;
+	Clock::time_point timerStart; ///< Used for determining speeds, distances, etc.
 };
 
 #endif
