@@ -1,6 +1,6 @@
 #include "X11ScreenIO.hpp"
-
 #include <cstdint>
+#include <X11/extensions/XTest.h>
 
 #include "Exceptions.hpp"
 
@@ -95,42 +95,6 @@ void X11ScreenIO::mouseTo(int x, int y)
 
 void X11ScreenIO::click()
 {
-	// Mad hax
-	system("xdotool click 1");
-	/*
-	XEvent event;
-	memset(&event, 0x00, sizeof(event));
-	event.type = ButtonPress;
-	event.xbutton.button = Button1;
-	event.xbutton.same_screen = True;
-
-	XQueryPointer(mainDisplay, RootWindow(mainDisplay, DefaultScreen(mainDisplay)),
-	              &event.xbutton.root, &event.xbutton.window,
-	              &event.xbutton.x_root, &event.xbutton.y_root,
-	              &event.xbutton.x, &event.xbutton.y, &event.xbutton.state);
-
-	event.xbutton.subwindow = event.xbutton.window;
-
-	while (event.xbutton.subwindow)
-	{
-		event.xbutton.window = event.xbutton.subwindow;
-		XQueryPointer(mainDisplay, event.xbutton.window, &event.xbutton.root, &event.xbutton.subwindow,
-		              &event.xbutton.x_root, &event.xbutton.y_root,
-		              &event.xbutton.x, &event.xbutton.y, &event.xbutton.state);
-	}
-
-	if(XSendEvent(mainDisplay, PointerWindow, True, 0xfff, &event) == 0)
-		throw Exceptions::IOException("Could not click", __FUNCTION__);
-
-	XFlush(mainDisplay);
-
-
-	event.type = ButtonRelease;
-	event.xbutton.state = 0x100;
-
-	if(XSendEvent(mainDisplay, PointerWindow, True, 0xfff, &event) == 0)
-		throw Exceptions::IOException("Could not release", __FUNCTION__);
-
-	XFlush(mainDisplay);
-	*/
+	XTestFakeButtonEvent(mainDisplay, 1, true, CurrentTime);
+	XTestFakeButtonEvent(mainDisplay, 1, false, CurrentTime);
 }

@@ -14,7 +14,7 @@ TEMPLATE = app
 #CONFIG += c++11 debug
 CONFIG += c++11 release
 
-LIBS += -lX11
+LIBS += -lX11 -lXtst
 
 QMAKE_CXXFLAGS += -Wall -Wextra
 
